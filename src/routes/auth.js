@@ -1,9 +1,13 @@
 const express = require('express');
-const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
 
 const router = express.Router();
+
+// --- Usuário e senha fixos do admin ---
+// Se quiser trocar depois, é só editar essas duas linhas e reiniciar o backend.
+const ADMIN_USERNAME = 'fitwear';
+const ADMIN_PASSWORD = '2502fit';
 
 // Trava tentativas de força bruta no login: no máximo 10 tentativas a cada 15 min por IP
 const loginLimiter = rateLimit({
@@ -21,13 +25,9 @@ router.post('/login', loginLimiter, async (req, res) => {
     return res.status(400).json({ error: 'Informe usuário e senha.' });
   }
 
-  const validUsername = username === process.env.ADMIN_USERNAME;
-  // Sempre roda o bcrypt.compare mesmo se o usuário já estiver errado,
-  // pra não dar pista de tempo de resposta sobre qual campo falhou.
-  const hash = process.env.ADMIN_PASSWORD_HASH || '';
-  const validPassword = hash ? await bcrypt.compare(password, hash) : false;
+  const valid = username === ADMIN_USERNAME && password === ADMIN_PASSWORD;
 
-  if (!validUsername || !validPassword) {
+  if (!valid) {
     return res.status(401).json({ error: 'Usuário ou senha inválidos.' });
   }
 
